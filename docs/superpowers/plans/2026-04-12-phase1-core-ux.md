@@ -24,7 +24,7 @@
 **Files:**
 - Create: `prompts/system.md`
 
-- [ ] **Step 1: Create the `prompts/` directory and write `system.md`**
+- [x] **Step 1: Create the `prompts/` directory and write `system.md`**
 
 Create `prompts/system.md` with the following content. This replaces the 3-line hardcoded prompt with comprehensive SAC/Datasphere domain knowledge:
 
@@ -102,7 +102,7 @@ Exception aggregation overrides the default for specific dimensions.
 - When writing SQL for Datasphere, specify whether it's for a SQL View, a transformation, or a task chain script.
 ```
 
-- [ ] **Step 2: Commit the system prompt**
+- [x] **Step 2: Commit the system prompt**
 
 ```bash
 git add prompts/system.md
@@ -123,7 +123,7 @@ This is a full rewrite of the 80-line file. The new version implements:
 4. Streaming responses via `st.write_stream`
 5. System prompt loaded from `prompts/system.md`
 
-- [ ] **Step 1: Write the new `app.py`**
+- [x] **Step 1: Write the new `app.py`**
 
 Replace the entire contents of `app.py` with:
 
@@ -260,7 +260,7 @@ if prompt := st.chat_input("What do you need help with?"):
     st.session_state.messages.append({"role": "assistant", "display": response})
 ```
 
-- [ ] **Step 2: Verify the app runs**
+- [x] **Step 2: Verify the app runs**
 
 ```bash
 cd /Users/amol_gulati/Documents/Coding_Projects/SAC-assistant
@@ -277,7 +277,7 @@ Open the browser and verify:
 - "New Conversation" clears the chat and image
 - Multi-turn conversation works (Claude references earlier messages)
 
-- [ ] **Step 3: Commit the rewrite**
+- [x] **Step 3: Commit the rewrite**
 
 ```bash
 git add app.py
@@ -290,27 +290,27 @@ git commit -m "feat: rewrite app with chat UI, streaming, sidebar controls, and 
 
 No files changed — this is a verification pass.
 
-- [ ] **Step 1: Test conversation continuity**
+- [x] **Step 1: Test conversation continuity**
 
 Send 2-3 messages in a row and verify the assistant references earlier context. Example:
 1. "What's the difference between SUM and LAST aggregation in SAC?"
 2. "When would I use exception aggregation for that?"
 3. Verify message 2's response references the SUM/LAST context from message 1.
 
-- [ ] **Step 2: Test image attachment**
+- [x] **Step 2: Test image attachment**
 
 1. Upload or paste a screenshot in the sidebar
 2. Ask "What do you see in this screenshot?"
 3. Verify the response describes the image content
 4. Click "Remove image", send another message, verify no image is sent
 
-- [ ] **Step 3: Test New Conversation**
+- [x] **Step 3: Test New Conversation**
 
 1. Have a few messages in the chat
 2. Click "New Conversation" in the sidebar
 3. Verify the chat is cleared and the input is ready
 
-- [ ] **Step 4: Test startup validation**
+- [x] **Step 4: Test startup validation**
 
 1. Temporarily rename `.env` to `.env.bak`
 2. Restart the app

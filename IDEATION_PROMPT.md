@@ -1,5 +1,7 @@
 # SAC Assistant - Ideation Prompt for AI Collaboration
 
+> **Note:** This is the original ideation document that kicked off the project. The actual implementation took a different path — we skipped the CLI phase and went straight to a Streamlit chat UI, then restructured the roadmap into three new phases (Core UX, Project Context, Polish). See [PLAN.md](PLAN.md) for current status and the [design spec](docs/superpowers/specs/2026-04-12-sac-assistant-v2-design.md) for the implemented architecture.
+
 ## Context
 
 I'm building an AI assistant to help with SAP Analytics Cloud (SAC) and Datasphere development work. I work in corporate finance at an oil & gas company, and I spend significant time building planning models, forecasting solutions, and data transformations.

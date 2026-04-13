@@ -8,11 +8,11 @@ Three vertical slices, each independently shippable. Each phase is a single focu
 
 ## Current State
 
-Single-file Streamlit app (`app.py`, ~80 lines). Sends a question + optional screenshot to an OpenAI-compatible API and renders the response. No conversation memory, no project context, no streaming. System prompt is 3 lines hardcoded in the file.
+Single-file Streamlit app (`app.py`, ~200 lines) with enriched system prompt in `prompts/system.md`. Phases 1 and 2 are complete: multi-turn conversational chat with streaming responses, screenshot support (paste + upload), project context system with folder discovery and token budget display, sidebar controls, and startup validation. Phase 3 (polish) is not yet started.
 
 ---
 
-## Phase 1: Core UX
+## Phase 1: Core UX ✓
 
 **Goal:** Transform from one-shot Q&A form into a real chat experience.
 
@@ -63,7 +63,7 @@ Single-file Streamlit app (`app.py`, ~80 lines). Sends a question + optional scr
 
 ---
 
-## Phase 2: Project Context
+## Phase 2: Project Context ✓
 
 **Goal:** Make the assistant project-aware so it gives guidance specific to what you're building.
 
@@ -218,6 +218,6 @@ These are explicitly deferred and not part of this plan:
 
 ## Success Criteria
 
-- **Phase 1:** Can have a multi-turn conversation about a SAC model with screenshots, responses stream in real-time, system prompt produces noticeably better SAC-specific answers
-- **Phase 2:** Can load a project folder, paste a screenshot, and get guidance that references your specific dimension names, conventions, and project status
+- **Phase 1:** ✓ Can have a multi-turn conversation about a SAC model with screenshots, responses stream in real-time, system prompt produces noticeably better SAC-specific answers
+- **Phase 2:** ✓ Can load a project folder, paste a screenshot, and get guidance that references your specific dimension names, conventions, and project status
 - **Phase 3:** Can drop a PDF meeting transcript into a project folder and have it inform responses; can export a useful conversation to share with a colleague

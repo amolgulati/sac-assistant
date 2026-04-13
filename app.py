@@ -86,14 +86,9 @@ for msg in st.session_state.messages:
 
 # Handle new user input
 if prompt := st.chat_input("What do you need help with?"):
-    # Build display content (what the user sees in the chat)
-    display = prompt
-    if st.session_state.image:
-        display = prompt  # image shown in sidebar, not inline in chat
-
-    st.session_state.messages.append({"role": "user", "display": display})
+    st.session_state.messages.append({"role": "user", "display": prompt})
     with st.chat_message("user"):
-        st.markdown(display)
+        st.markdown(prompt)
 
     # Build API messages
     api_messages = [{"role": "system", "content": SYSTEM_PROMPT}]
@@ -123,8 +118,6 @@ if prompt := st.chat_input("What do you need help with?"):
                 stream=True,
             )
             response = st.write_stream(stream)
+            st.session_state.messages.append({"role": "assistant", "display": response})
         except Exception as e:
-            response = f"**API Error:** {e}"
-            st.error(response)
-
-    st.session_state.messages.append({"role": "assistant", "display": response})
+            st.error(f"**API Error:** {e}")

@@ -1,6 +1,6 @@
 # SAC Assistant
 
-AI-powered assistant for SAP Analytics Cloud (SAC) and SAP Datasphere development. Paste a screenshot, ask a question, and get expert guidance — formulas, SQL, troubleshooting steps, and best practices.
+AI-powered conversational assistant for SAP Analytics Cloud (SAC) and SAP Datasphere development. Chat with an expert co-pilot that understands SAC formulas, Datasphere SQL, planning models, and common gotchas — with streaming responses and screenshot support.
 
 ## Quick Start
 
@@ -24,12 +24,26 @@ All config lives in `.env`:
 
 The app uses the standard OpenAI SDK, so any OpenAI-compatible endpoint works (OpenAI, Azure, Databricks AI Gateway, etc.).
 
+If any variables are missing on startup, the app shows a friendly setup page with instructions instead of a cryptic error.
+
 ## Usage
 
-1. **Take a screenshot** of your SAC model, Datasphere view, or error message
-2. **Paste it** using the clipboard button, or upload a file
-3. **Type your question** (e.g. "Why is my allocation formula not distributing correctly?")
-4. **Submit** and get a formatted response with code blocks and actionable steps
+1. **Start the app** — `streamlit run app.py`
+2. **Chat** — type questions in the chat input at the bottom of the page
+3. **Attach screenshots** — paste from clipboard or upload in the sidebar; the image stays attached until you remove it
+4. **Multi-turn conversation** — the assistant remembers your full conversation, so you can ask follow-ups
+5. **New conversation** — click "New Conversation" in the sidebar to start fresh
+
+Responses stream in real-time, token by token.
+
+## Features
+
+- **Conversational chat** — full multi-turn conversation with context retained across messages
+- **Streaming responses** — tokens appear as they're generated, no waiting for the full response
+- **Screenshot support** — paste from clipboard or upload an image; the assistant can analyze SAC models, Datasphere views, and error messages
+- **Enriched system prompt** — deep knowledge of SAC formulas (MEMBERSET, FOREACH, RESULTLOOKUP, LINK), Datasphere/HANA SQL dialect, planning model structure, and common gotchas; editable in `prompts/system.md`
+- **Sidebar controls** — new conversation, image attachment with preview and removal
+- **Startup validation** — clear error messages if environment variables are missing
 
 ## Example Use Cases
 
@@ -38,6 +52,20 @@ The app uses the standard OpenAI SDK, so any OpenAI-compatible endpoint works (O
 - Convert Excel logic to Datasphere calculated columns
 - Optimize SQL views for performance
 - Troubleshoot SAC/Datasphere error messages
+- Understand aggregation types and exception aggregation
+- Get guidance on planning model design (versions, dimensions, measures)
+
+## Project Structure
+
+```
+sac-assistant/
+  app.py                 # Streamlit chat application
+  prompts/
+    system.md            # SAC/Datasphere system prompt (editable)
+  requirements.txt       # Python dependencies
+  .env.example           # Configuration template
+  .env                   # Your configuration (not committed)
+```
 
 ## Corporate Deployment
 

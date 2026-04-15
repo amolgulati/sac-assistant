@@ -34,7 +34,7 @@ If any variables are missing on startup, the app shows a friendly setup page wit
 
 1. **Start the app** — `streamlit run app.py`
 2. **Chat** — type questions in the chat input at the bottom of the page
-3. **Attach screenshots** — paste from clipboard or upload in the sidebar; the image stays attached until you remove it
+3. **Attach screenshots** — paste, drag-drop, or pick an image directly in the chat input via the paperclip icon; the image sends with your next message
 4. **Multi-turn conversation** — the assistant remembers your full conversation, so you can ask follow-ups
 5. **New conversation** — click "New Conversation" in the sidebar to start fresh
 6. **Project-aware mode** — pick a project in the sidebar to load `_project.md` plus all `.md` and `.txt` files from that project folder into context
@@ -45,11 +45,11 @@ Responses stream in real-time, token by token.
 
 - **Conversational chat** — full multi-turn conversation with context retained across messages
 - **Streaming responses** — tokens appear as they're generated, no waiting for the full response
-- **Screenshot support** — paste from clipboard or upload an image; the assistant can analyze SAC models, Datasphere views, and error messages
+- **Screenshot support** — attach images inline in the chat input (paste, drag-drop, or paperclip picker); the assistant can analyze SAC models, Datasphere views, and error messages
 - **Enriched system prompt** — deep knowledge of SAC formulas (MEMBERSET, FOREACH, RESULTLOOKUP, LINK), Datasphere/HANA SQL dialect, planning model structure, and common gotchas; editable in `prompts/system.md`
 - **Project context loading** — select a project folder and inject its markdown/text docs into the model context automatically
 - **Token budget visibility** — sidebar shows approximate project-context size so you can trim oversized context sets
-- **Sidebar controls** — new conversation, image attachment with preview and removal
+- **Sidebar controls** — new conversation, project context selector with token-budget display
 - **Startup validation** — clear error messages if environment variables or auth inputs are missing
 - **Databricks App auth fallback** — local `API_KEY` for desktop use, OAuth token exchange for Databricks Apps
 
@@ -85,7 +85,7 @@ Designed for locked-down environments:
 - **No OS-level automation** — no PyAutoGUI, keyboard hooks, or screen capture
 - **No external calls required** — point `BASE_URL` to an internal endpoint (e.g. Databricks AI Gateway)
 - **No admin privileges needed** — pure Python, runs in user space
-- **Minimal dependencies** — five well-known packages
+- **Minimal dependencies** — three well-known packages
 
 ## Databricks Apps Deployment
 

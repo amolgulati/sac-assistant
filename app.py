@@ -177,7 +177,6 @@ with st.sidebar:
     else:
         project_context = None
 
-
 # ── Chat area ────────────────────────────────────────────────────────
 st.title("SAC Assistant")
 st.caption("AI-powered help for SAP Analytics Cloud & Datasphere")
@@ -199,6 +198,8 @@ if user_input:
     files = user_input.files or []
     image_file = files[0] if files else None
 
+    # Defensive: Streamlit's exact accept_file semantics for empty submissions aren't
+    # documented, so guard here in case ChatInputValue arrives with neither text nor files.
     if text or image_file:
         display_text = text if text else "(image attached)"
 

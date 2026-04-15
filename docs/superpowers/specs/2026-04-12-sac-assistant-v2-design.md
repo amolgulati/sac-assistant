@@ -6,9 +6,21 @@ Transform the SAC Assistant from a single-turn Q&A form into a project-aware con
 
 Three vertical slices, each independently shippable. Each phase is a single focused session (~60-90 min).
 
+## Implementation Status
+
+| Area | Status |
+|------|--------|
+| Core chat UX | Implemented |
+| Project context loading | Implemented |
+| Databricks App deployment/auth fallback | Implemented |
+| PDF/DOCX parsing | Not implemented |
+| Per-file toggles | Not implemented |
+| Conversation export | Not implemented |
+| Code block copy enhancements | Not implemented |
+
 ## Current State
 
-Single-file Streamlit app (`app.py`, ~80 lines). Sends a question + optional screenshot to an OpenAI-compatible API and renders the response. No conversation memory, no project context, no streaming. System prompt is 3 lines hardcoded in the file.
+Single-file Streamlit app (`app.py`) with multi-turn chat, streaming responses, sidebar image handling, startup validation, project-aware context loading, and a filesystem-driven project selector. The system prompt is externalized in `prompts/system.md`. The app can authenticate either with a direct `API_KEY` or, in a Databricks App, by exchanging injected app credentials for a short-lived OAuth token.
 
 ---
 
@@ -52,7 +64,8 @@ Single-file Streamlit app (`app.py`, ~80 lines). Sends a question + optional scr
 ### 1.5 Startup Validation
 
 - On launch, check that `API_KEY`, `BASE_URL`, `MODEL_NAME` env vars are set
-- If any are missing, show a clear setup message with instructions instead of letting the app proceed to a cryptic API error
+- If `API_KEY` is absent but Databricks App credentials are present, allow runtime OAuth token exchange instead of failing immediately
+- If required config is still missing, show a clear setup message with instructions instead of letting the app proceed to a cryptic API error
 
 ### Files Changed
 
@@ -141,6 +154,7 @@ Brief description of the project scope and objectives.
 |------|--------|
 | `app.py` | Modify — add project scanning, selector, context injection |
 | `projects/_template/_project.md` | Create — starter template |
+| `app.yaml` | Create — Databricks App entrypoint and default runtime env |
 
 ---
 
@@ -202,6 +216,7 @@ These are explicitly deferred and not part of this plan:
 - **RAG / embeddings** — full file loading is sufficient at current scale
 - **SAC/Datasphere API integration** — tool suggests, user executes
 - **Context auto-summarization** — manual file management for now
+- **Automatic parsing of `.docx` and `.pdf` project files** — still deferred until Phase 3
 
 ## Dependencies
 
@@ -221,3 +236,7 @@ These are explicitly deferred and not part of this plan:
 - **Phase 1:** Can have a multi-turn conversation about a SAC model with screenshots, responses stream in real-time, system prompt produces noticeably better SAC-specific answers
 - **Phase 2:** Can load a project folder, paste a screenshot, and get guidance that references your specific dimension names, conventions, and project status
 - **Phase 3:** Can drop a PDF meeting transcript into a project folder and have it inform responses; can export a useful conversation to share with a colleague
+
+## Notes On Current Workaround
+
+Until Phase 3 is implemented, source meeting notes and PRDs should be converted to `.md` or `.txt` and stored in the project folder so they are loaded by the existing context loader.

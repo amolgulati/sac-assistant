@@ -12,17 +12,21 @@ cp .env.example .env             # then edit .env with your values
 streamlit run app.py
 ```
 
+Local development expects a `.env` file. Databricks Apps deployment can rely on injected app credentials instead of a local `API_KEY`.
+
 ## Configuration
 
 All config lives in `.env`:
 
-| Variable     | Description                              | Example                        |
-|-------------|------------------------------------------|--------------------------------|
-| `API_KEY`   | API key or access token                  | `sk-...`                       |
-| `BASE_URL`  | OpenAI-compatible API base URL           | `https://api.openai.com/v1`    |
-| `MODEL_NAME`| Model to use (must support vision)       | `gpt-4o`                       |
+| Variable | Required | Description | Example |
+| -------- | -------- | ----------- | ------- |
+| `API_KEY` | Local only unless Databricks App auth is available | API key or access token for an OpenAI-compatible endpoint | `sk-...` |
+| `BASE_URL` | Yes | OpenAI-compatible API base URL | `https://api.openai.com/v1` |
+| `MODEL_NAME` | Yes | Model to use | `gpt-4o` |
 
 The app uses the standard OpenAI SDK, so any OpenAI-compatible endpoint works (OpenAI, Azure, Databricks AI Gateway, etc.).
+
+If `API_KEY` is not set, the app can still start inside a Databricks App when `DATABRICKS_CLIENT_ID` and `DATABRICKS_CLIENT_SECRET` are injected by the platform. In that mode the app exchanges those credentials for a short-lived Databricks OAuth token automatically.
 
 If any variables are missing on startup, the app shows a friendly setup page with instructions instead of a cryptic error.
 
@@ -33,6 +37,7 @@ If any variables are missing on startup, the app shows a friendly setup page wit
 3. **Attach screenshots** — paste from clipboard or upload in the sidebar; the image stays attached until you remove it
 4. **Multi-turn conversation** — the assistant remembers your full conversation, so you can ask follow-ups
 5. **New conversation** — click "New Conversation" in the sidebar to start fresh
+6. **Project-aware mode** — pick a project in the sidebar to load `_project.md` plus all `.md` and `.txt` files from that project folder into context
 
 Responses stream in real-time, token by token.
 
@@ -42,8 +47,11 @@ Responses stream in real-time, token by token.
 - **Streaming responses** — tokens appear as they're generated, no waiting for the full response
 - **Screenshot support** — paste from clipboard or upload an image; the assistant can analyze SAC models, Datasphere views, and error messages
 - **Enriched system prompt** — deep knowledge of SAC formulas (MEMBERSET, FOREACH, RESULTLOOKUP, LINK), Datasphere/HANA SQL dialect, planning model structure, and common gotchas; editable in `prompts/system.md`
+- **Project context loading** — select a project folder and inject its markdown/text docs into the model context automatically
+- **Token budget visibility** — sidebar shows approximate project-context size so you can trim oversized context sets
 - **Sidebar controls** — new conversation, image attachment with preview and removal
-- **Startup validation** — clear error messages if environment variables are missing
+- **Startup validation** — clear error messages if environment variables or auth inputs are missing
+- **Databricks App auth fallback** — local `API_KEY` for desktop use, OAuth token exchange for Databricks Apps
 
 ## Example Use Cases
 
@@ -57,9 +65,12 @@ Responses stream in real-time, token by token.
 
 ## Project Structure
 
-```
+```text
 sac-assistant/
   app.py                 # Streamlit chat application
+  app.yaml               # Databricks App entrypoint/config
+  docs/                  # Design specs and implementation notes
+  projects/              # Optional project context folders
   prompts/
     system.md            # SAC/Datasphere system prompt (editable)
   requirements.txt       # Python dependencies
@@ -80,24 +91,39 @@ Designed for locked-down environments:
 
 This repo can be deployed as a Databricks App using the included `app.yaml`.
 
+The checked-in `app.yaml` provides default values for:
+
+- `BASE_URL`
+- `MODEL_NAME`
+
+That means a Databricks deployment typically only needs auth configured unless you want to override those defaults.
+
 1. Create the app once:
+
   ```bash
   databricks apps create sac-assistant -p AmolG
   ```
-2. Import the repo to your workspace files:
+
+1. Import the repo to your workspace files:
+
   ```bash
   databricks workspace mkdirs /Workspace/Users/amol_gulati@oxy.com/sac-assistant -p AmolG
   databricks workspace import-dir . /Workspace/Users/amol_gulati@oxy.com/sac-assistant --overwrite -p AmolG
   ```
-3. Deploy the imported source:
+
+1. Deploy the imported source:
+
   ```bash
   databricks apps deploy sac-assistant \
     --source-code-path /Workspace/Users/amol_gulati@oxy.com/sac-assistant \
     -p AmolG
   ```
-4. In the Databricks App configuration, add secret resources for:
-  - `API_KEY`
-  - `BASE_URL`
-  - `MODEL_NAME`
 
-If those environment variables are not configured yet, the app still starts and shows the built-in setup screen instead of failing.
+1. In the Databricks App configuration, provide one of these auth patterns:
+
+- Preferred: Databricks App credentials via injected `DATABRICKS_CLIENT_ID` and `DATABRICKS_CLIENT_SECRET`
+- Alternative: explicit `API_KEY`
+
+1. Override `BASE_URL` and `MODEL_NAME` only if the `app.yaml` defaults are not correct for your workspace.
+
+If auth or required environment variables are not configured yet, the app still starts and shows the built-in setup screen instead of failing.

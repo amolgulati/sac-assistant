@@ -1,5 +1,7 @@
 # SAC Assistant - Ideation Prompt for AI Collaboration
 
+> Historical ideation note: this document captures the original brainstorming prompt before the current Streamlit app existed. The live implementation has already completed the chat UI, streaming, enriched system prompt, project context loading, and Databricks App deployment scaffolding.
+
 ## Context
 
 I'm building an AI assistant to help with SAP Analytics Cloud (SAC) and Datasphere development work. I work in corporate finance at an oil & gas company, and I spend significant time building planning models, forecasting solutions, and data transformations.
@@ -25,7 +27,7 @@ A lightweight tool where I can:
 3. Get back expert guidance, formulas, SQL queries, or step-by-step instructions
 4. Copy/paste the suggestions into SAC/Datasphere (I stay in control)
 
-## Current Plan Summary
+## Original Plan Summary
 
 **Phase 1: CLI MVP (Week 1)**
 - Simple Python script (`sac_assistant.py`)

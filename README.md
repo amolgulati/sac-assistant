@@ -45,7 +45,7 @@ Responses stream in real-time, token by token.
 
 - **Conversational chat** — full multi-turn conversation with context retained across messages
 - **Streaming responses** — tokens appear as they're generated, no waiting for the full response
-- **Screenshot support** — attach images inline in the chat input (paste, drag-drop, or paperclip picker); the assistant can analyze SAC models, Datasphere views, and error messages
+- **Screenshot support with visual annotations** — attach images inline in the chat input (paste, drag-drop, or paperclip picker); the assistant analyzes SAC models, Datasphere views, and error messages, and returns annotated screenshots with numbered markers (circles, arrows, highlights) pointing at exactly where to click and what to change
 - **Enriched system prompt** — deep knowledge of SAC formulas (MEMBERSET, FOREACH, RESULTLOOKUP, LINK), Datasphere/HANA SQL dialect, planning model structure, and common gotchas; editable in `prompts/system.md`
 - **Project context loading** — select a project folder and inject its markdown/text docs into the model context automatically
 - **Token budget visibility** — sidebar shows approximate project-context size so you can trim oversized context sets
@@ -68,11 +68,14 @@ Responses stream in real-time, token by token.
 ```text
 sac-assistant/
   app.py                 # Streamlit chat application
+  annotator.py           # Draws annotation markers on screenshot images (planned)
+  response_parser.py     # Extracts annotation JSON from model responses (planned)
   app.yaml               # Databricks App entrypoint/config
-  docs/                  # Design specs and implementation notes
+  docs/                  # Design specs and implementation plans
   projects/              # Optional project context folders
   prompts/
     system.md            # SAC/Datasphere system prompt (editable)
+  tests/                 # pytest tests for annotator and parser (planned)
   requirements.txt       # Python dependencies
   .env.example           # Configuration template
   .env                   # Your configuration (not committed)
@@ -85,7 +88,7 @@ Designed for locked-down environments:
 - **No OS-level automation** — no PyAutoGUI, keyboard hooks, or screen capture
 - **No external calls required** — point `BASE_URL` to an internal endpoint (e.g. Databricks AI Gateway)
 - **No admin privileges needed** — pure Python, runs in user space
-- **Minimal dependencies** — three well-known packages
+- **Minimal dependencies** — four well-known packages (Streamlit, OpenAI SDK, python-dotenv, Pillow)
 
 ## Databricks Apps Deployment
 

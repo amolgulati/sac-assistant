@@ -13,6 +13,8 @@ Three vertical slices, each independently shippable. Each phase is a single focu
 | Core chat UX | Implemented |
 | Project context loading | Implemented |
 | Databricks App deployment/auth fallback | Implemented |
+| Inline image attach | Implemented |
+| Smart Annotator (annotated screenshot responses) | Planned — see `specs/2026-04-15-smart-annotator-design.md` |
 | PDF/DOCX parsing | Not implemented |
 | Per-file toggles | Not implemented |
 | Conversation export | Not implemented |
@@ -20,7 +22,9 @@ Three vertical slices, each independently shippable. Each phase is a single focu
 
 ## Current State
 
-Single-file Streamlit app (`app.py`) with multi-turn chat, streaming responses, sidebar image handling, startup validation, project-aware context loading, and a filesystem-driven project selector. The system prompt is externalized in `prompts/system.md`. The app can authenticate either with a direct `API_KEY` or, in a Databricks App, by exchanging injected app credentials for a short-lived OAuth token.
+Single-file Streamlit app (`app.py`) with multi-turn chat, streaming responses, inline image attachment via `st.chat_input(accept_file=True)`, startup validation, project-aware context loading, and a filesystem-driven project selector. The system prompt is externalized in `prompts/system.md`. The app can authenticate either with a direct `API_KEY` or, in a Databricks App, by exchanging injected app credentials for a short-lived OAuth token.
+
+Next up: Smart Annotator feature — AI returns annotated screenshots with numbered circles, arrows, and highlights showing exactly where to click.
 
 ---
 
@@ -221,11 +225,12 @@ These are explicitly deferred and not part of this plan:
 ## Dependencies
 
 ### Current (`requirements.txt`)
-- `streamlit>=1.31.0`
+- `streamlit>=1.43.0`
 - `openai>=1.12.0`
 - `python-dotenv>=1.0.0`
+
+### Added by Smart Annotator (planned)
 - `Pillow>=10.0.0`
-- `streamlit-paste-button>=0.1.2`
 
 ### Added in Phase 3
 - `pypdf>=4.0.0`

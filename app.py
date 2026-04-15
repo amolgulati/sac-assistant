@@ -1,5 +1,4 @@
 import base64
-import io
 import os
 import time
 from urllib.parse import urlsplit
@@ -8,7 +7,6 @@ import requests
 import streamlit as st
 from dotenv import load_dotenv
 from openai import OpenAI
-from streamlit_paste_button import paste_image_button
 
 load_dotenv()
 
@@ -137,8 +135,6 @@ def load_project_context(project_name):
 # ── Session state ────────────────────────────────────────────────────
 if "messages" not in st.session_state:
     st.session_state.messages = []
-if "image" not in st.session_state:
-    st.session_state.image = None  # (bytes, mime_type) or None
 if "active_project" not in st.session_state:
     st.session_state.active_project = None  # project folder name or None
 
@@ -148,7 +144,6 @@ with st.sidebar:
 
     if st.button("New Conversation", use_container_width=True):
         st.session_state.messages = []
-        st.session_state.image = None
         st.rerun()
 
     # ── Project selector ────────────────────────────────────────────
@@ -182,28 +177,6 @@ with st.sidebar:
     else:
         project_context = None
 
-    st.divider()
-    st.subheader("Image Attachment")
-
-    paste_result = paste_image_button("Paste from clipboard", key="paste_btn")
-    if paste_result and paste_result.image_data:
-        buf = io.BytesIO()
-        paste_result.image_data.save(buf, format="PNG")
-        st.session_state.image = (buf.getvalue(), "image/png")
-
-    uploaded_file = st.file_uploader(
-        "Or upload an image",
-        type=["png", "jpg", "jpeg", "gif", "webp"],
-        key="file_upload",
-    )
-    if uploaded_file:
-        st.session_state.image = (uploaded_file.getvalue(), uploaded_file.type or "image/png")
-
-    if st.session_state.image:
-        st.image(st.session_state.image[0], use_column_width=True)
-        if st.button("Remove image", use_container_width=True):
-            st.session_state.image = None
-            st.rerun()
 
 # ── Chat area ────────────────────────────────────────────────────────
 st.title("SAC Assistant")
@@ -215,45 +188,59 @@ for msg in st.session_state.messages:
         st.markdown(msg["display"])
 
 # Handle new user input
-if prompt := st.chat_input("What do you need help with?"):
-    st.session_state.messages.append({"role": "user", "display": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
+user_input = st.chat_input(
+    "What do you need help with?",
+    accept_file=True,
+    file_type=["png", "jpg", "jpeg", "gif", "webp"],
+)
 
-    # Build API messages
-    api_messages = [{"role": "system", "content": SYSTEM_PROMPT}]
-    if project_context:
-        api_messages.append({
-            "role": "system",
-            "content": f"--- PROJECT CONTEXT ---\n\n{project_context}\n\n--- END PROJECT CONTEXT ---",
-        })
-    for msg in st.session_state.messages:
-        if msg["role"] == "user":
-            api_messages.append({"role": "user", "content": msg.get("api_content", msg["display"])})
-        else:
-            api_messages.append({"role": "assistant", "content": msg["display"]})
+if user_input:
+    text = (user_input.text or "").strip()
+    files = user_input.files or []
+    image_file = files[0] if files else None
 
-    # Attach image to the current user message (API only — already in sidebar visually)
-    if st.session_state.image:
-        img_bytes, mime = st.session_state.image
-        b64 = base64.b64encode(img_bytes).decode("utf-8")
-        api_messages[-1]["content"] = [
-            {"type": "text", "text": prompt},
-            {"type": "image_url", "image_url": {"url": f"data:{mime};base64,{b64}"}},
-        ]
-        # Store the multimodal content so future turns include it
-        st.session_state.messages[-1]["api_content"] = api_messages[-1]["content"]
+    if text or image_file:
+        display_text = text if text else "(image attached)"
 
-    # Stream the response
-    with st.chat_message("assistant"):
-        try:
-            client = build_client(REQUIRED_VARS["BASE_URL"], REQUIRED_VARS["API_KEY"])
-            stream = client.chat.completions.create(
-                model=MODEL,
-                messages=api_messages,
-                stream=True,
-            )
-            response = st.write_stream(stream)
-            st.session_state.messages.append({"role": "assistant", "display": response})
-        except Exception as e:
-            st.error(f"**API Error:** {e}")
+        st.session_state.messages.append({"role": "user", "display": display_text})
+        with st.chat_message("user"):
+            st.markdown(display_text)
+
+        # Build API messages
+        api_messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+        if project_context:
+            api_messages.append({
+                "role": "system",
+                "content": f"--- PROJECT CONTEXT ---\n\n{project_context}\n\n--- END PROJECT CONTEXT ---",
+            })
+        for msg in st.session_state.messages:
+            if msg["role"] == "user":
+                api_messages.append({"role": "user", "content": msg.get("api_content", msg["display"])})
+            else:
+                api_messages.append({"role": "assistant", "content": msg["display"]})
+
+        # Attach image to the current user message
+        if image_file is not None:
+            img_bytes = image_file.getvalue()
+            mime = image_file.type or "image/png"
+            b64 = base64.b64encode(img_bytes).decode("utf-8")
+            api_messages[-1]["content"] = [
+                {"type": "text", "text": display_text},
+                {"type": "image_url", "image_url": {"url": f"data:{mime};base64,{b64}"}},
+            ]
+            # Store the multimodal content so future turns include it
+            st.session_state.messages[-1]["api_content"] = api_messages[-1]["content"]
+
+        # Stream the response
+        with st.chat_message("assistant"):
+            try:
+                client = build_client(REQUIRED_VARS["BASE_URL"], REQUIRED_VARS["API_KEY"])
+                stream = client.chat.completions.create(
+                    model=MODEL,
+                    messages=api_messages,
+                    stream=True,
+                )
+                response = st.write_stream(stream)
+                st.session_state.messages.append({"role": "assistant", "display": response})
+            except Exception as e:
+                st.error(f"**API Error:** {e}")

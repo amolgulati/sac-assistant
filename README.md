@@ -75,3 +75,29 @@ Designed for locked-down environments:
 - **No external calls required** — point `BASE_URL` to an internal endpoint (e.g. Databricks AI Gateway)
 - **No admin privileges needed** — pure Python, runs in user space
 - **Minimal dependencies** — five well-known packages
+
+## Databricks Apps Deployment
+
+This repo can be deployed as a Databricks App using the included `app.yaml`.
+
+1. Create the app once:
+  ```bash
+  databricks apps create sac-assistant -p AmolG
+  ```
+2. Import the repo to your workspace files:
+  ```bash
+  databricks workspace mkdirs /Workspace/Users/amol_gulati@oxy.com/sac-assistant -p AmolG
+  databricks workspace import-dir . /Workspace/Users/amol_gulati@oxy.com/sac-assistant --overwrite -p AmolG
+  ```
+3. Deploy the imported source:
+  ```bash
+  databricks apps deploy sac-assistant \
+    --source-code-path /Workspace/Users/amol_gulati@oxy.com/sac-assistant \
+    -p AmolG
+  ```
+4. In the Databricks App configuration, add secret resources for:
+  - `API_KEY`
+  - `BASE_URL`
+  - `MODEL_NAME`
+
+If those environment variables are not configured yet, the app still starts and shows the built-in setup screen instead of failing.

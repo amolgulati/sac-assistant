@@ -1,0 +1,12 @@
+command:
+  - streamlit
+  - run
+  - app.py
+  - --server.headless=true
+  - --browser.gatherUsageStats=false
+
+env:
+  - name: BASE_URL
+    value: "https://dbc-361a513b-7da1.cloud.databricks.com/serving-endpoints"
+  - name: MODEL_NAME
+    value: "databricks-gpt-5-4"

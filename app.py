@@ -184,7 +184,7 @@ with st.sidebar:
     options = ["No project"] + projects
     current_idx = 0
     if st.session_state.active_project in projects:
-        current_idx = options.index(st.session_state.active_project)
+        current_idx = options.index(str(st.session_state.active_project))
 
     selected = st.selectbox("Active project", options, index=current_idx, key="project_select")
     new_project = None if selected == "No project" else selected
@@ -277,7 +277,7 @@ if user_input:
             current_image_bytes = img_bytes  # keep original for annotator
             mime = image_file.type or "image/png"
             b64 = base64.b64encode(img_bytes).decode("utf-8")
-            api_messages[-1]["content"] = [
+            api_messages[-1]["content"] = [  # type: ignore[assignment]
                 {"type": "text", "text": display_text},
                 {"type": "image_url", "image_url": {"url": f"data:{mime};base64,{b64}"}},
             ]

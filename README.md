@@ -67,15 +67,13 @@ Responses stream in real-time, token by token.
 
 ```text
 sac-assistant/
-  app.py                 # Streamlit chat application
-  annotator.py           # Draws annotation markers on screenshot images (planned)
-  response_parser.py     # Extracts annotation JSON from model responses (planned)
+  app.py                 # Streamlit chat application (includes response parser)
+  annotator.py           # Draws annotation markers on screenshot images
   app.yaml               # Databricks App entrypoint/config
   docs/                  # Design specs and implementation plans
   projects/              # Optional project context folders
   prompts/
     system.md            # SAC/Datasphere system prompt (editable)
-  tests/                 # pytest tests for annotator and parser (planned)
   requirements.txt       # Python dependencies
   .env.example           # Configuration template
   .env                   # Your configuration (not committed)

@@ -1,12 +1,18 @@
 import base64
+import json
+import logging
 import os
+import re
 import time
 from urllib.parse import urlsplit
 
 import requests
 import streamlit as st
+from annotator import annotate
 from dotenv import load_dotenv
 from openai import OpenAI
+
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
@@ -56,6 +62,30 @@ def get_databricks_access_token(base_url):
 def build_client(base_url, api_key):
     resolved_api_key = api_key or get_databricks_access_token(base_url)
     return OpenAI(api_key=resolved_api_key, base_url=base_url)
+
+
+_ANNOTATION_BLOCK_RE = re.compile(r'\n?```annotations\s*([\s\S]*?)```', re.MULTILINE)
+
+
+def parse_response(text: str) -> tuple:
+    """Split model response into (text_content, annotations_list or None).
+
+    Extracts the trailing ```annotations ... ``` block if present.
+    Returns the clean text (block removed) and a parsed list of dicts.
+    Falls back to (original_text, None) on any parse error.
+    """
+    match = _ANNOTATION_BLOCK_RE.search(text)
+    if not match:
+        return text, None
+    try:
+        annotations = json.loads(match.group(1).strip())
+        if not isinstance(annotations, list) or not annotations:
+            return text, None
+        text_content = (text[: match.start()] + text[match.end():]).strip()
+        return text_content, annotations
+    except json.JSONDecodeError:
+        logger.warning("Failed to parse annotations JSON from model response")
+        return text, None
 
 # ── Startup validation ──────────────────────────────────────────────
 REQUIRED_VARS = {"API_KEY": os.getenv("API_KEY"),
@@ -177,6 +207,15 @@ with st.sidebar:
     else:
         project_context = None
 
+    # ── Image attachment toggle ─────────────────────────────────────
+    st.divider()
+    attach_images = st.toggle(
+        "Enable image attach",
+        value=False,
+        help="Turn on to attach images via paperclip or drag-drop. "
+             "Leave off for normal Ctrl+V text paste.",
+    )
+
 # ── Chat area ────────────────────────────────────────────────────────
 st.title("SAC Assistant")
 st.caption("AI-powered help for SAP Analytics Cloud & Datasphere")
@@ -184,19 +223,30 @@ st.caption("AI-powered help for SAP Analytics Cloud & Datasphere")
 # Render conversation history
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
+        if msg.get("annotated_image"):
+            st.image(msg["annotated_image"],
+                     caption="Annotated screenshot",
+                     use_container_width=True)
         st.markdown(msg["display"])
 
 # Handle new user input
-user_input = st.chat_input(
-    "What do you need help with?",
-    accept_file=True,
-    file_type=["png", "jpg", "jpeg", "gif", "webp"],
-)
+if attach_images:
+    user_input = st.chat_input(
+        "What do you need help with?",
+        accept_file=True,
+        file_type=["png", "jpg", "jpeg", "gif", "webp"],
+    )
+else:
+    user_input = st.chat_input("What do you need help with?")
 
 if user_input:
-    text = (user_input.text or "").strip()
-    files = user_input.files or []
-    image_file = files[0] if files else None
+    if attach_images:
+        text = (user_input.text or "").strip()
+        files = user_input.files or []
+        image_file = files[0] if files else None
+    else:
+        text = user_input.strip() if isinstance(user_input, str) else (user_input.text or "").strip()
+        image_file = None
 
     # Defensive: Streamlit's exact accept_file semantics for empty submissions aren't
     # documented, so guard here in case ChatInputValue arrives with neither text nor files.
@@ -221,8 +271,10 @@ if user_input:
                 api_messages.append({"role": "assistant", "content": msg["display"]})
 
         # Attach image to the current user message
+        current_image_bytes = None
         if image_file is not None:
             img_bytes = image_file.getvalue()
+            current_image_bytes = img_bytes  # keep original for annotator
             mime = image_file.type or "image/png"
             b64 = base64.b64encode(img_bytes).decode("utf-8")
             api_messages[-1]["content"] = [
@@ -241,7 +293,30 @@ if user_input:
                     messages=api_messages,
                     stream=True,
                 )
-                response = st.write_stream(stream)
-                st.session_state.messages.append({"role": "assistant", "display": response})
+                # Stream into a placeholder so we can replace it with the annotated version
+                placeholder = st.empty()
+                with placeholder.container():
+                    response = st.write_stream(stream)
+
+                text_content, annotations = parse_response(response)
+
+                annotated_bytes = None
+                if annotations and current_image_bytes:
+                    try:
+                        annotated_bytes = annotate(current_image_bytes, annotations)
+                        with placeholder.container():
+                            st.image(annotated_bytes,
+                                     caption="Annotated screenshot",
+                                     use_container_width=True)
+                            st.markdown(text_content)
+                    except Exception:
+                        logger.warning("Annotation rendering failed", exc_info=True)
+                        text_content = response  # fall back to full original response
+                        annotated_bytes = None
+
+                msg_entry = {"role": "assistant", "display": text_content}
+                if annotated_bytes:
+                    msg_entry["annotated_image"] = annotated_bytes
+                st.session_state.messages.append(msg_entry)
             except Exception as e:
                 st.error(f"**API Error:** {e}")

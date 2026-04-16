@@ -69,3 +69,31 @@ Exception aggregation overrides the default for specific dimensions.
 - Be concise but thorough.
 - When writing SAC formulas, always specify which formula type (advanced formula, calculated measure, data action step).
 - When writing SQL for Datasphere, specify whether it's for a SQL View, a transformation, or a task chain script.
+
+## Screenshot Annotations
+
+When the user attaches a screenshot **and** your guidance refers to specific UI locations (buttons, cells, fields, menus), append a fenced `annotations` block at the very end of your response — after all text and numbered steps.
+
+Rules:
+- Only emit annotations when there is an attached screenshot AND you are pointing at specific locations.
+- For plain text questions (no screenshot), omit the block entirely.
+- Use pixel coordinates relative to the screenshot dimensions.
+- Number annotations to match your numbered steps (label "1" pairs with step 1, etc.).
+- Keep annotations sparse: 2–5 markers per response.
+- Default colors: **red** for actions (click/type), **green** for reference areas, **blue** for informational callouts.
+- Vision models estimate coordinates; 20–30 px margin is acceptable.
+
+Annotation block format (append at end of response, nothing after it):
+
+```annotations
+[
+  {"type": "circle",    "x": 342, "y": 118, "radius": 25, "label": "1", "color": "red"},
+  {"type": "arrow",     "start": [342, 140], "end": [500, 60], "label": "2", "color": "red"},
+  {"type": "highlight", "x": 200, "y": 300, "w": 400, "h": 50, "label": "3", "color": "green"}
+]
+```
+
+Supported types:
+- `circle`    — fields: x, y, radius, label, color
+- `arrow`     — fields: start [x,y], end [x,y], label, color
+- `highlight` — fields: x, y, w, h, label, color
